@@ -621,7 +621,7 @@
                     foreach (var iDocUpdate in item.DetaCobro)
                     {
                         DocumCc documento = new DocumentosVentasRepositorio().GetDocumento(iDocUpdate.DocNum, iDocUpdate.TpDocCob, empresaDB);
-                        documento.Saldo -= iDocUpdate.MontCob;
+                        documento.Saldo -= iDocUpdate.Neto;
                         documento.CoUsMo = item.CoUsIn;
                         documento.FeUsMo = item.FeUsIn;
                         Response result = new DocumentosVentasRepositorio().Update(documento, empresaDB);
@@ -633,7 +633,7 @@
                                 Factura factura = db.Factura.FirstOrDefault(f => f.FactNum == documento.NroDoc);
                                 if (factura != null)
                                 {
-                                    factura.Saldo -= iDocUpdate.MontCob;
+                                    factura.Saldo -= iDocUpdate.Neto;
                                     factura.CoUsMo = item.CoUsIn;
                                     factura.FeUsMo = item.FeUsIn;
                                     db.Entry(factura).State = EntityState.Modified;
@@ -929,7 +929,7 @@
                     throw new ArgumentException("No se encontró el correlativo configurado para 'COBRO'.");
                 }
 
-                return new Response { Status = "OK", Message = "OK" };
+                return new Response { Status = "OK", Message = "Transacción realizada con éxito" };
             }
             catch (Exception ex)
             {
@@ -979,11 +979,11 @@
                     {
                         throw new ArgumentException($"El documento [{iDoc.TpDocCob}] [{iDoc.DocNum}] indicado en el renglón del cobro {iDoc.RengNum} no posee saldo.");
                     }
-                    if (iDoc.MontCob > documento.Saldo)
+                    if (iDoc.Neto > documento.Saldo)
                     {
                         throw new ArgumentException($"El documento [{iDoc.TpDocCob}] [{iDoc.DocNum}] indicado en el renglón del cobro [{iDoc.RengNum}] posee un saldo inferior al monto indicado.");
                     }
-                    if (documento.CoCli != obj.CoCli)
+                    if (documento.CoCli.Trim() != obj.CoCli.Trim())
                     {
                         throw new ArgumentException($"El documento [{iDoc.TpDocCob}] [{iDoc.DocNum}] indicado en el renglón del cobro [{iDoc.RengNum}] es de un cliente diferente.");
                     }

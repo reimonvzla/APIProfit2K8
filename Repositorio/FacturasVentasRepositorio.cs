@@ -468,7 +468,7 @@
 
                 #region Buscar consecutivo
                 var numeroFactura = utilitarios.BuscarConsecutivo("FACT", item.CoSucu, empresaDB);
-                var numeroControl = utilitarios.BuscarNroControl(empresaDB);
+                var numeroControl = utilitarios.BuscarNroControl(item.CoSucu, empresaDB);
                 #endregion
 
                 if (numeroFactura > 0)
@@ -678,7 +678,7 @@
                     #endregion
 
                     #region Actualizar nro control
-                    utilitarios.ActualizarNroControl(numeroControl, empresaDB);
+                    utilitarios.ActualizarNroControl(numeroControl, item.CoSucu, empresaDB);
                     #endregion
 
                     return new Response { Status = "OK", Message = "Transacción realizada con éxito.", FacturaID = numeroFactura.ToString(), ControlID = numeroControl };
@@ -771,7 +771,7 @@
                 }
                 else
                 {
-                    if (almacen.CoAlma != obj.CoSucu)
+                    if (almacen.CoAlma.Trim() != obj.CoSucu.Trim())
                     {
                         throw new ArgumentException($"El almacén {iRengFac.CoAlma.Trim()} suministrado en el renglón {iRengFac.RengNum} no está permitido utilizarlo en la sucursal suministrada {obj.CoSucu.Trim()}.");
                     }

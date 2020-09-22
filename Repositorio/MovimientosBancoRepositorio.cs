@@ -23,7 +23,7 @@
         public MovBan GetMovBanxDoc(string key, string origen, string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-            return db.MovBan.FirstOrDefault(mb => mb.DocNum == key && mb.Origen == origen && mb.TipoOp == "DP" && mb.Anulado == false);
+            return db.MovBan.FirstOrDefault(mb => mb.DocNum.Trim() == key && mb.Origen.Trim() == origen && mb.TipoOp == "DP" && mb.Anulado == false);
         } 
         #endregion
 

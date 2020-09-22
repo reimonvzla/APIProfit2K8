@@ -30,7 +30,7 @@
         public Clientes GetCliente(string key, string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-            return db.Clientes.FirstOrDefault(c => c.CoCli == key);
+            return db.Clientes.FirstOrDefault(c => c.CoCli.Trim() == key);
         }
         #endregion
 
@@ -74,7 +74,7 @@
             if (cliente == null || !isGuardar)
             {
                 #region Tipo cliente
-                TipoCli tipo = db.TipoCli.FirstOrDefault(t => t.TipCli == obj.Tipo);
+                TipoCli tipo = db.TipoCli.FirstOrDefault(t => t.TipCli.Trim() == obj.Tipo.Trim());
                 if (tipo == null)
                 {
                     throw new ArgumentException($"El tipo de cliente {obj.Tipo.Trim()} indicado no existe.");
@@ -82,7 +82,7 @@
                 #endregion
 
                 #region Zona
-                Zona zona = db.Zona.FirstOrDefault(z => z.CoZon == obj.CoZon.Trim());
+                Zona zona = db.Zona.FirstOrDefault(z => z.CoZon.Trim() == obj.CoZon.Trim());
                 if (zona == null)
                 {
                     throw new ArgumentException($"La zona {obj.CoZon.Trim()} indicada no existe.");
@@ -90,7 +90,7 @@
                 #endregion
 
                 #region Segmento
-                Segmento segmento = db.Segmento.FirstOrDefault(s => s.CoSeg == obj.CoSeg.Trim());
+                Segmento segmento = db.Segmento.FirstOrDefault(s => s.CoSeg.Trim() == obj.CoSeg.Trim());
                 if (segmento == null)
                 {
                     throw new ArgumentException($"El segmento {obj.CoSeg.Trim()} indicado no existe.");
@@ -98,7 +98,7 @@
                 #endregion
 
                 #region Vendedor
-                Vendedor vendedor = db.Vendedor.FirstOrDefault(v => v.CoVen == obj.CoVen.Trim());
+                Vendedor vendedor = db.Vendedor.FirstOrDefault(v => v.CoVen.Trim() == obj.CoVen.Trim());
                 if (vendedor == null)
                 {
                     throw new ArgumentException($"El vendedor {obj.CoVen.Trim()} indicado no existe.");
@@ -106,7 +106,7 @@
                 #endregion
 
                 #region Cuenta ingr/egre
-                CtaIngr ctaIngr = db.CtaIngr.FirstOrDefault(f => f.CoIngr == obj.CoIngr.Trim());
+                CtaIngr ctaIngr = db.CtaIngr.FirstOrDefault(f => f.CoIngr.Trim() == obj.CoIngr.Trim());
                 if (ctaIngr == null)
                 {
                     throw new ArgumentException($"La cuenta ingreso/egreso {obj.CoIngr.Trim()} indicada no existe.");
@@ -114,7 +114,7 @@
                 #endregion
 
                 #region Sucursal
-                Almacen sucu = db.Almacen.FirstOrDefault(s => s.CoAlma == obj.CoSucu.Trim());
+                Almacen sucu = db.Almacen.FirstOrDefault(s => s.CoAlma.Trim() == obj.CoSucu.Trim());
                 if (sucu == null)
                 {
                     throw new ArgumentException($"La sucursal {obj.CoSucu.Trim()} indicada no existe.");
@@ -143,7 +143,7 @@
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
 
-                var rowID = GetCliente(item.CoCli, empresaDB);
+                var rowID = GetCliente(item.CoCli.Trim(), empresaDB);
                 
                 if (rowID == null)
                 {

@@ -11,7 +11,6 @@
     {
         readonly ConexionAlterna conn = new ConexionAlterna();
         readonly DocumentosVentasRepositorio DocumCCRepositorio = new DocumentosVentasRepositorio();
-        //readonly CobrosRepositorio cobrosRepositorio = new CobrosRepositorio();
         readonly MovimientosCajaRepositorio MovCRepositorio = new MovimientosCajaRepositorio();
         readonly MovimientosBancoRepositorio MovBRepositorio = new MovimientosBancoRepositorio();
         int valor = 0;
@@ -107,37 +106,71 @@
         #endregion
 
         #region Buscar consecutivo de numero de control
-        public string BuscarNroControl(string EmpresaDB)
+        public string BuscarNroControl(string sucursal_act, string EmpresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(EmpresaDB));
+
             string prefijo = string.Empty, numeroc = string.Empty;
             string mask = string.Empty;
-            List<Auxiliar> NroControl = (from control in db.Auxiliar where control.GrupAux == "NroControl" select control).ToList();
-            if (NroControl.Count == 0)
+
+            #region Verificar si maneja sucursales
+            if (db.ParEmp.Select(p => p.PFactAlm).FirstOrDefault())
             {
-                throw new ArgumentException("No existe la carpeta 'NroControl' configurada en datos adicionales de la empresa.");
-            }
-            else
-            {
-                foreach (var iControl in NroControl)
+                Almacen obj = db.Almacen.FirstOrDefault(a => a.CoAlma == sucursal_act);
+
+                if(string.IsNullOrEmpty(obj.Campo3.Trim()))
                 {
-                    switch (iControl.NomAux.Trim())
+                    throw new ArgumentException($"No existe configurado el prefijo del número de control en la sucursal {sucursal_act.Trim()} (Campo3)");
+                }
+
+                if (string.IsNullOrEmpty(obj.Campo4.Trim()))
+                {
+                    throw new ArgumentException($"No existe configurado el número de control en la sucursal {sucursal_act.Trim()} (Campo4)");
+                }
+
+                prefijo = obj.Campo3.Trim();
+
+                var len = obj.Campo4.Trim().Length;
+                var con = Convert.ToInt32(obj.Campo4.Trim()) + 1;
+
+                mask = new String('0', len); 
+                numeroc = con.ToString($"{mask}");
+            }
+            #endregion            
+            
+            else
+
+            #region Buscar en Configuracion adicional de la empresa la carpeta correspondiente (NroControl).
+            {
+                List<Auxiliar> NroControl = (from control in db.Auxiliar where control.GrupAux == "NroControl" select control).ToList();
+                if (NroControl.Count == 0)
+                {
+                    throw new ArgumentException("No existe la carpeta 'NroControl' configurada en datos adicionales de la empresa.");
+                }
+                else
+                {
+                    foreach (var iControl in NroControl)
                     {
-                        case "Prefijo":
-                            mask = iControl.FormAux.Trim().Replace("9", "0");
-                            prefijo = (Convert.ToInt32(iControl.ValAux.Trim())).ToString($"{mask}");
-                            //prefijo = $"{(Convert.ToInt32(iControl.ValAux.Trim()) + 1): 00 }";
-                            break;
-                        case "Control":
-                            mask = iControl.FormAux.Trim().Replace("9", "0");
-                            numeroc = (Convert.ToInt32(iControl.ValAux.Trim()) + 1).ToString($"{mask}");
-                            //numeroc = $"{(Convert.ToInt32(iControl.ValAux.Trim()) + 1): 000000}";
-                            break;
-                        default:
-                            break;
+                        switch (iControl.NomAux.Trim())
+                        {
+                            case "Prefijo":
+                                mask = iControl.FormAux.Trim().Replace("9", "0");
+                                prefijo = (Convert.ToInt32(iControl.ValAux.Trim())).ToString($"{mask}");
+                                //prefijo = $"{(Convert.ToInt32(iControl.ValAux.Trim()) + 1): 00 }";
+                                break;
+                            case "Control":
+                                mask = iControl.FormAux.Trim().Replace("9", "0");
+                                numeroc = (Convert.ToInt32(iControl.ValAux.Trim()) + 1).ToString($"{mask}");
+                                //numeroc = $"{(Convert.ToInt32(iControl.ValAux.Trim()) + 1): 000000}";
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
-            }
+            } 
+            #endregion
+            
             return $@"{prefijo}-{numeroc}".Trim();
         }
         #endregion
@@ -284,26 +317,36 @@
         #endregion
 
         #region Actualizar nro control
-        public void ActualizarNroControl(string numeroc,string empresaDB)
+        public void ActualizarNroControl(string numeroc,string sucursal_act,string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-            List<Auxiliar> NroControl = (from control in db.Auxiliar where control.GrupAux == "NroControl" select control).ToList();
             string valor = string.Empty;
-            foreach (var iNroControl in NroControl)
+
+            if (db.ParEmp.Select(p => p.PFactAlm).FirstOrDefault())
             {
-                switch (iNroControl.NomAux.Trim())
+                Almacen obj = db.Almacen.FirstOrDefault(a => a.CoAlma == sucursal_act);
+                valor = numeroc.Substring(numeroc.IndexOf("-") + 1, numeroc.Length - (numeroc.IndexOf("-") + 1));
+                obj.Campo4 = valor;
+            }
+            else
+            {
+                List<Auxiliar> NroControl = (from control in db.Auxiliar where control.GrupAux == "NroControl" select control).ToList();
+                foreach (var iNroControl in NroControl)
                 {
-                    case "Control":
-                        valor = Convert.ToInt32(numeroc.Substring(numeroc.IndexOf("-") + 1,numeroc.Length - (numeroc.IndexOf("-") + 1))).ToString();
-                        break;
-                    case "Prefijo":
-                        valor = Convert.ToInt32(numeroc.Substring(0, numeroc.IndexOf("-"))).ToString();
-                        break;
-                    default:
-                        break;
+                    switch (iNroControl.NomAux.Trim())
+                    {
+                        case "Control":
+                            valor = Convert.ToInt32(numeroc.Substring(numeroc.IndexOf("-") + 1, numeroc.Length - (numeroc.IndexOf("-") + 1))).ToString();
+                            break;
+                        case "Prefijo":
+                            valor = Convert.ToInt32(numeroc.Substring(0, numeroc.IndexOf("-"))).ToString();
+                            break;
+                        default:
+                            break;
+                    }
+                    iNroControl.ValAux = valor;
+                    db.Entry(iNroControl).State = EntityState.Modified;
                 }
-                iNroControl.ValAux = valor;
-                db.Entry(iNroControl).State = EntityState.Modified;
             }
             db.SaveChanges();
         }

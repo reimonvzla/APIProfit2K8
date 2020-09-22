@@ -19,7 +19,7 @@ using Models;
         public DocumCc GetDocumento(int key, string tipoDocumento, string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-            return db.DocumCc.FirstOrDefault(d => d.NroDoc == key && d.TipoDoc == tipoDocumento);
+            return db.DocumCc.FirstOrDefault(d => d.NroDoc == key && d.TipoDoc.Trim() == tipoDocumento);
         } 
         #endregion
 

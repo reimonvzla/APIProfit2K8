@@ -17,8 +17,8 @@
             try
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-                var Qry= db.Art.FirstOrDefault(a => a.CoArt == key);
-                return db.Art.FirstOrDefault(a => a.CoArt == key);
+                //var Qry= db.Art.FirstOrDefault(a => a.CoArt.Trim() == key);
+                return db.Art.FirstOrDefault(a => a.CoArt.Trim() == key);
             }
             catch (Exception ex)
             {
@@ -70,7 +70,7 @@
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
 
-                var rowID = Find(item.CoArt, empresaDB);
+                var rowID = Find(item.CoArt.Trim(), empresaDB);
                 if (rowID == null)
                 {
                     throw new ArgumentException($"El artículo {item.CoArt.Trim()} no existe.");
@@ -96,7 +96,7 @@
         private void ValidarArticulo(Art obj, string empresaDB, bool isGuardar)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-            Art articulo = db.Art.FirstOrDefault(a => a.CoArt == obj.CoArt.Trim());
+            Art articulo = db.Art.FirstOrDefault(a => a.CoArt.Trim() == obj.CoArt.Trim());
 
             /*El parametro isGuardar se estable para validar registros inclusive editando*/
 
@@ -104,7 +104,7 @@
             {
 
                 #region Verificar linea
-                LinArt linea = db.LinArt.FirstOrDefault(l => l.CoLin == obj.CoLin.Trim());
+                LinArt linea = db.LinArt.FirstOrDefault(l => l.CoLin.Trim() == obj.CoLin.Trim());
                 if (linea == null)
                 {
                     throw new ArgumentException($"La línea {obj.CoLin.Trim()} indicada no existe.");
@@ -112,7 +112,7 @@
                 #endregion
 
                 #region Verificar sublinea
-                SubLin sublinea = db.SubLin.FirstOrDefault(sl => sl.CoSubl == obj.CoSubl.Trim() && sl.CoLin == obj.CoLin.Trim());
+                SubLin sublinea = db.SubLin.FirstOrDefault(sl => sl.CoSubl.Trim() == obj.CoSubl.Trim() && sl.CoLin.Trim() == obj.CoLin.Trim());
                 if (sublinea == null)
                 {
                     throw new ArgumentException($"La Sublínea {obj.CoSubl.Trim()} indicada no existe ó no pertenece a la línea {obj.CoLin.Trim()} verifique.");
@@ -120,7 +120,7 @@
                 #endregion
 
                 #region Varificar catergoria
-                CatArt categoria = db.CatArt.FirstOrDefault(c => c.CoCat == obj.CoCat.Trim());
+                CatArt categoria = db.CatArt.FirstOrDefault(c => c.CoCat.Trim() == obj.CoCat.Trim());
                 if (categoria == null)
                 {
                     throw new ArgumentException($"La categoría {obj.CoCat.Trim()} indicada no existe.");
@@ -128,7 +128,7 @@
                 #endregion
 
                 #region Verificar color
-                Colores color = db.Colores.FirstOrDefault(c => c.CoCol == obj.CoColor.Trim());
+                Colores color = db.Colores.FirstOrDefault(c => c.CoCol.Trim() == obj.CoColor.Trim());
                 if (color == null)
                 {
                     throw new ArgumentException($"El coloro {obj.CoColor.Trim()} indicado no existe.");
@@ -136,7 +136,7 @@
                 #endregion
 
                 #region Verificar procedencia
-                Proceden procedencia = db.Proceden.FirstOrDefault(p => p.CodProc == obj.Procedenci.Trim());
+                Proceden procedencia = db.Proceden.FirstOrDefault(p => p.CodProc.Trim() == obj.Procedenci.Trim());
                 if (procedencia == null)
                 {
                     throw new ArgumentException($"La procedencia {obj.Procedenci.Trim()} indicada no existe.");
@@ -144,7 +144,7 @@
                 #endregion
 
                 #region Verificar proveedor
-                Prov proveedor = db.Prov.FirstOrDefault(p => p.CoProv == obj.CoProv.Trim());
+                Prov proveedor = db.Prov.FirstOrDefault(p => p.CoProv.Trim() == obj.CoProv.Trim());
                 if (proveedor == null)
                 {
                     throw new ArgumentException($"El proveedor {obj.CoProv.Trim()} indicado no existe.");
@@ -152,7 +152,7 @@
                 #endregion
 
                 #region VErificar unidad primaria
-                Unidades unidad = db.Unidades.FirstOrDefault(u => u.CoUni == obj.UniVenta.Trim());
+                Unidades unidad = db.Unidades.FirstOrDefault(u => u.CoUni.Trim() == obj.UniVenta.Trim());
                 if (unidad == null)
                 {
                     throw new ArgumentException($"La unidad primaria {obj.UniVenta.Trim()} indicada no existe.");
@@ -160,7 +160,7 @@
                 #endregion
 
                 #region Verificar sucursal
-                Almacen susursal = db.Almacen.FirstOrDefault(s => s.CoAlma == obj.CoSucu.Trim());
+                Almacen susursal = db.Almacen.FirstOrDefault(s => s.CoAlma.Trim() == obj.CoSucu.Trim());
                 if (susursal == null)
                 {
                     throw new ArgumentException($"La sucursal {obj.CoSucu.Trim()} indicada no existe.");

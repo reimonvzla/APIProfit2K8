@@ -19,7 +19,7 @@
         public Cuentas GetCuenta(string key, string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
-            return db.Cuentas.FirstOrDefault(c => c.CodCta == key);
+            return db.Cuentas.FirstOrDefault(c => c.CodCta.Trim() == key);
         } 
         #endregion
 
