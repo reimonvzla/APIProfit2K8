@@ -110,15 +110,12 @@
                 if (ctaIngr == null)
                 {
                     throw new ArgumentException($"La cuenta ingreso/egreso {obj.CoIngr.Trim()} indicada no existe.");
-                } 
+                }
                 #endregion
 
                 #region Sucursal
-                Almacen sucu = db.Almacen.FirstOrDefault(s => s.CoAlma.Trim() == obj.CoSucu.Trim());
-                if (sucu == null)
-                {
-                    throw new ArgumentException($"La sucursal {obj.CoSucu.Trim()} indicada no existe.");
-                } 
+                Utilitarios utilitarios = new Utilitarios();
+                utilitarios.GetSucursal(cliente.CoSucu, empresaDB);
                 #endregion
 
                 #region Tabulador ISLR

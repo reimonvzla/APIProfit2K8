@@ -740,16 +740,12 @@
             }
             #endregion
 
-            #region Verificar nro control parametrizado
-            //ParEmp numcontrol = db.ParEmp.FirstOrDefault();
-            //if (string.IsNullOrEmpty(numcontrol.TempChar1.Trim()))
-            //{
-            //    throw new ArgumentException("No existe configurado el número de control. Ejemplo: [Valor1=00 y Valor2=0000777] en Parámetros de la empresa - Preferencias.");
-            //}
-            //if (string.IsNullOrEmpty(numcontrol.TempChar2.Trim()))
-            //{
-            //    throw new ArgumentException("No existe configurado el número de control. Ejemplo: [Valor1=00 y Valor2=0000777] en Parámetros de la empresa - Preferencias.");
-            //}
+            #region Verificar moneda
+            utilitarios.GetMoneda(obj.Moneda, empresaDB);
+            #endregion
+
+            #region Verificar sucursal
+            utilitarios.GetSucursal(obj.CoSucu, empresaDB);
             #endregion
 
             #region Verificar datos en renglones de factura

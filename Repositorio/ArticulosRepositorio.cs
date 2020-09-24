@@ -160,11 +160,8 @@
                 #endregion
 
                 #region Verificar sucursal
-                Almacen susursal = db.Almacen.FirstOrDefault(s => s.CoAlma.Trim() == obj.CoSucu.Trim());
-                if (susursal == null)
-                {
-                    throw new ArgumentException($"La sucursal {obj.CoSucu.Trim()} indicada no existe.");
-                }
+                Utilitarios utilitarios = new Utilitarios();
+                utilitarios.GetSucursal(obj.CoSucu, empresaDB);
                 #endregion
 
             }

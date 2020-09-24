@@ -375,6 +375,33 @@
             }
             db.Entry(tabla).State = EntityState.Modified;
             db.SaveChanges();
+        }
+        #endregion
+
+        #region Verificar moneda
+        public Moneda GetMoneda(string codMoneda,string empresaDB)
+        {
+            using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+
+            Moneda moneda = db.Moneda.FirstOrDefault(m => m.CoMone.Trim() == codMoneda.Trim());
+            if (moneda == null)
+            {
+                throw new ArgumentException($"La moneda indicada {codMoneda.Trim()} no existe.");
+            }
+            return moneda;
+        }
+        #endregion
+
+        #region Verificar sucursal
+        public Almacen GetSucursal(string codSucursal, string empresaDB)
+        {
+            using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+            Almacen sucu = db.Almacen.FirstOrDefault(s => s.CoAlma.Trim() == codSucursal.Trim());
+            if (sucu == null)
+            {
+                throw new ArgumentException($"La sucursal {codSucursal.Trim()} indicada no existe.");
+            }
+            return sucu;
         } 
         #endregion
 

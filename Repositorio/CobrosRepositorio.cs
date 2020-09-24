@@ -812,9 +812,9 @@
                                 FeUsIn = item.FeUsIn,
                                 FeUsMo = item.FeUsIn,
                                 FeUsEl = item.FeUsEl,
-                                Fecha = item.FecCob,
-                                FechaChe = iFormaPag.FecCheq,
-                                FecCon = item.FecCob,
+                                Fecha = iFormaPag.FecCheq,
+                                FechaChe = item.FecCob,
+                                FecCon = iFormaPag.FecCheq,
                                 Feccom = item.Feccom,
                                 CoSucu = item.CoSucu,
                                 Origen = "COB",
@@ -1025,6 +1025,15 @@
 
                 }
             }
+            #endregion
+
+            #region Verificar moneda
+            Utilitarios utilitarios = new Utilitarios();
+            utilitarios.GetMoneda(obj.Moneda, empresaDB);
+            #endregion
+
+            #region Verificar sucursal
+            utilitarios.GetSucursal(obj.CoSucu, empresaDB);
             #endregion
         }
         #endregion
