@@ -129,6 +129,10 @@
                 if (tabulador == null) throw new ArgumentException($"El tabulador de ISLR {obj.CoTab} indicado no existe.");
                 #endregion
             }
+            else
+            {
+                throw new ArgumentException($"El Proveedor {obj.CoProv.Trim()} indicado ya existe.");
+            }
         } 
         #endregion
     }
