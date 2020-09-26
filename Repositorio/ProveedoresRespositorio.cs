@@ -121,7 +121,7 @@
 
                 #region Sucursal
                 Utilitarios utilitarios = new Utilitarios();
-                utilitarios.GetSucursal(proveedor.CoSucu, empresaDB);
+                utilitarios.GetSucursal(obj.CoSucu, empresaDB);
                 #endregion
 
                 #region Tabulador ISLR
