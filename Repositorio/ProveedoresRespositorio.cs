@@ -121,13 +121,17 @@
 
                 #region Sucursal
                 Utilitarios utilitarios = new Utilitarios();
-                utilitarios.GetSucursal(proveedor.CoSucu, empresaDB);
+                utilitarios.GetSucursal(obj.CoSucu, empresaDB);
                 #endregion
 
                 #region Tabulador ISLR
                 TabIslr tabulador = db.TabIslr.FirstOrDefault(t => t.CoTab == obj.CoTab);
                 if (tabulador == null) throw new ArgumentException($"El tabulador de ISLR {obj.CoTab} indicado no existe.");
                 #endregion
+            }
+            else
+            {
+                throw new ArgumentException($"El Proveedor {obj.CoProv.Trim()} indicado ya existe.");
             }
         } 
         #endregion
