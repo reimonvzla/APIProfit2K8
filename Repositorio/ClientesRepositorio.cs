@@ -75,10 +75,7 @@
             {
                 #region Tipo cliente
                 TipoCli tipo = db.TipoCli.FirstOrDefault(t => t.TipCli.Trim() == obj.Tipo.Trim());
-                if (tipo == null)
-                {
-                    throw new ArgumentException($"El tipo de cliente {obj.Tipo.Trim()} indicado no existe.");
-                } 
+                if (tipo == null) throw new ArgumentException($"El tipo de cliente {obj.Tipo.Trim()} indicado no existe.");
                 #endregion
 
                 #region Zona
