@@ -36,8 +36,18 @@
         //public static
         internal DbContextOptions<ProfitAdmin2K8> GetDbContextOptions(string dataBase)
         {
-            string DataSource = GetServerName();
-            //string DataSource = "DESKTOP-9RKQG9O"; //"MARINO_ADMON";
+            /*Buscar el servidor en appsetting.json*/
+            /*Se excluye el metodo GetServerName*/
+            /*R.M.: 02/10/2020*/
+
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+            string DataSource = configuration["Servidor"];
+            //string DataSource = GetServerName();
+
             String connString = $"Server={DataSource};Database={dataBase};User Id=profit;Password=profit;";
 
             return new DbContextOptionsBuilder<ProfitAdmin2K8>()
