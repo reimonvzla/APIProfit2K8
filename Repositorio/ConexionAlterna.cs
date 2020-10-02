@@ -65,6 +65,7 @@
                         }
                     }
                 }
+                command.Connection.Close();
             }
             return serverName;
         }
