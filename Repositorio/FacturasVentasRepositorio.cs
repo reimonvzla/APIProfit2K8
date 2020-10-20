@@ -707,6 +707,13 @@
             {
                 throw new ArgumentException($"El cliente {obj.CoCli.Trim()} indicado para la factura no existe.");
             }
+            else 
+            {
+                if (cliente.Inactivo) 
+                {
+                    throw new ArgumentException($"El cliente {obj.CoCli.Trim()} indicado para la factura se encuentra inactivo.");
+                }
+            }
             #endregion
 
             #region Verificar vendedor
@@ -794,7 +801,22 @@
         #region Update
         public Response Update(EncabFacturaVenta item, string empresaDB)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+                db.Entry(item).State = EntityState.Modified;
+                db.SaveChanges();
+                foreach (var iRengFac in item.DetaFacturaVenta)
+                {
+                    db.Entry(iRengFac).State = EntityState.Modified;
+                }
+                db.SaveChanges();
+                return new Response { Status = "OK", Message = "Actualización realizada con éxito." };
+            }
+            catch (Exception ex)
+            {
+                return new Response { Status = "ERROR", Message = (ex.InnerException != null) ? ex.InnerException.Message : ex.Message };
+            }
         }
         #endregion
     }

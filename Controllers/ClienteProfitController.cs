@@ -1,5 +1,6 @@
 ﻿namespace APIProfit2K8.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Cors;
@@ -41,6 +42,13 @@
         [Route("Guardar")]
         public IActionResult Guardar([FromBody] Clientes cliente, string Emp)
         {
+            cliente.CoUsIn = string.IsNullOrEmpty(cliente.CoUsIn) ? "999" : cliente.CoUsIn;
+            cliente.FeUsIn = DateTime.Now;
+            cliente.CoUsMo = string.Empty;
+            cliente.FeUsMo = Convert.ToDateTime("01/01/1900");
+            cliente.CoUsEl = string.Empty;
+            cliente.FeUsEl = Convert.ToDateTime("01/01/1900");
+
             resultado = metodo.Save(cliente, Emp);
             if (resultado.Status == "OK")
             {
@@ -58,6 +66,11 @@
         [HttpPut("Actualizar")]
         public IActionResult Actualizar([FromBody] Clientes cliente, string Emp)
         {
+            cliente.CoUsMo = string.IsNullOrEmpty(cliente.CoUsMo) ? "999" : cliente.CoUsMo;
+            cliente.FeUsMo = DateTime.Now;
+            cliente.CoUsEl = string.Empty;
+            cliente.FeUsEl = Convert.ToDateTime("01/01/1900");
+
             resultado = metodo.Update(cliente, Emp);
             if (resultado.Status == "OK")
             {

@@ -78,8 +78,6 @@
 
                 ValidarArticulo(item, empresaDB, false);
 
-                item.CoUsMo = "999";
-                item.FeUsMo = DateTime.Now;
                 item.RowId = rowID.RowId;
                 db.Entry(item).State = EntityState.Modified;
                 db.SaveChanges();

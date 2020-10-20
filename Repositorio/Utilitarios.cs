@@ -38,10 +38,40 @@
             while (true)
             {
                 #region Busqueda movimientos en documentos
-                if (tipoDoc != "COBR" && tipoDoc != "MOVC" && tipoDoc != "MOVB")
+                if (tipoDoc != "DEVO" && tipoDoc != "AJUS" && tipoDoc != "COBR" && tipoDoc != "MOVC" && tipoDoc != "MOVB")
                 {
                     DocumCc documcc = DocumCCRepositorio.GetDocumento(numero, tipoDoc, empresaDB);
                     if (documcc != null)
+                    {
+                        numero++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                #endregion
+
+                #region Busqueda movimientos en ajustes de inventario
+                if (tipoDoc == "AJUS")
+                {
+                    Ajuste ajuste = db.Ajuste.FirstOrDefault(a => a.AjueNum == numero);
+                    if (ajuste != null)
+                    {
+                        numero++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                #endregion
+
+                #region Busqueda movimientos en devoluciones de clientes
+                if (tipoDoc == "DEVO")
+                {
+                    DevCli devCli = db.DevCli.FirstOrDefault(dc => dc.FactNum == numero);
+                    if (devCli != null)
                     {
                         numero++;
                     }
@@ -181,6 +211,15 @@
             /*Ubica dinamicamente el valor del campo sea ParEmp o Almacen el que se este evaluando*/
             switch (tipoDoc)
             {
+                case "N/CR":
+                    valor = (int)obj.GetType().GetProperty("NcNum").GetValue(obj, null);
+                    break;
+                case "DEVO":
+                    valor = (int)obj.GetType().GetProperty("DevcNum").GetValue(obj, null);
+                    break;
+                case "AJUS":
+                    valor = (int)obj.GetType().GetProperty("AjusNum").GetValue(obj, null);
+                    break;
                 case "FACT":
                     valor = (int)obj.GetType().GetProperty("FactNum").GetValue(obj, null);
                     break;
@@ -221,7 +260,7 @@
         #endregion
 
         #region BuscarISV
-        private decimal BuscarISV(string tipoTasa, DateTime fecha, string tipoDoc, string EmpresaDB)
+        public decimal BuscarISV(string tipoTasa, DateTime fecha, string tipoDoc, string EmpresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(EmpresaDB));
             var Qry = (from tab in
@@ -358,6 +397,15 @@
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
             switch (tipoDoc)
             {
+                case "N/CR":
+                    tabla.GetType().GetProperty("NcNum").SetValue(tabla, numero);
+                    break;
+                case "DEVO":
+                    tabla.GetType().GetProperty("DevcNum").SetValue(tabla, numero);
+                    break;
+                case "AJUS":
+                    tabla.GetType().GetProperty("AjusNum").SetValue(tabla, numero);
+                    break;
                 case "FACT":
                     tabla.GetType().GetProperty("FactNum").SetValue(tabla, numero);
                     break;
@@ -369,6 +417,9 @@
                     break;
                 case "MOVB":
                     tabla.GetType().GetProperty("MovbNum").SetValue(tabla, numero);
+                    break;
+                case "ADEL":
+                    tabla.GetType().GetProperty("PostNum").SetValue(tabla, numero);
                     break;
                 default:
                     break;

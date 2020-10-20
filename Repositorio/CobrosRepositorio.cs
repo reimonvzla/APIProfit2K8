@@ -11,6 +11,7 @@
     {
         readonly ConexionAlterna conn = new ConexionAlterna();
         Clientes cliente;
+        Response result;
 
         #region Find
         public EncabCobro Find(int key, string empresaDB)
@@ -600,11 +601,11 @@
         public Response Save(EncabCobro item, string empresaDB)
         {
             Utilitarios utilitarios = new Utilitarios();
-
             try
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
                 int numeroCajaBanco = 0;
+                int nroadelanto = 0;
 
                 #region Validar cobro
                 ValidarCobro(item, empresaDB);
@@ -614,30 +615,101 @@
                 int numeroCobro = utilitarios.BuscarConsecutivo("COBR", item.CoSucu, empresaDB);
                 #endregion
 
-
                 if (numeroCobro > 0)
                 {
-                    #region Actualización de saldos a documentos en reng_cob
-                    foreach (var iDocUpdate in item.DetaCobro)
-                    {
-                        DocumCc documento = new DocumentosVentasRepositorio().GetDocumento(iDocUpdate.DocNum, iDocUpdate.TpDocCob, empresaDB);
-                        documento.Saldo -= iDocUpdate.Neto;
-                        documento.CoUsMo = item.CoUsIn;
-                        documento.FeUsMo = item.FeUsIn;
-                        Response result = new DocumentosVentasRepositorio().Update(documento, empresaDB);
+                    #region Actualización de saldos a documentos en reng_cob o creacion de anticipo
 
-                        if (result.Status == "OK")
+                    /*Determinar si vienen renglones, sino se está creando un anticipo*/
+                    int totalRenglones = item.DetaCobro.Count();
+                    /******************************************************************/
+
+                    if (totalRenglones == 0)
+                    {
+                        /*Se asume que está creándose un cobro de tipo adelanto. Se procede a crear el documento tipo "ADEL"*/
+                        DocumCc adelanto = new DocumCc
                         {
-                            if (documento.TipoDoc == "FACT" && documento.Aut)
+                            #region Campos
+                            Numcon = string.Empty,
+                            CoCli = item.CoCli.Trim(),
+                            TipoDoc = "ADEL",
+                            Moneda = item.Moneda,
+                            CoVen = item.CoVen.Trim(),
+                            FeUsIn = item.FeUsIn,
+                            FeUsMo = item.FeUsMo,
+                            FeUsEl = item.FeUsEl,
+                            CoSucu = item.CoSucu,
+                            Tipo = "6",
+                            FecEmis = item.FecCob,
+                            FecVenc = item.FecCob,
+                            NroChe = "00000000000000",
+                            Observa = $"Cobro {numeroCobro} de {cliente.CliDes.Trim()}",
+                            MontoBru = item.Monto,
+                            Recargo = "0",
+                            MontoNet = item.Monto,
+                            DocOrig = "COBR",
+                            NroOrig = numeroCobro,
+                            Tasa = item.Tasa,
+                            Saldo = item.Monto,
+                            Salestax = string.Empty,
+                            Aut = true,
+                            CoUsIn = item.CoUsIn,
+                            CoUsMo = item.CoUsMo,
+                            CoUsEl = item.CoUsEl,
+                            Feccom = item.FecCob,
+                            #endregion
+                        };
+                        result = new DocumentosVentasRepositorio().Save(adelanto, empresaDB);
+                        if (result.Status == "ERROR") throw new ArgumentException($"Error en cobros docum_cc adelantos {result.Message}");
+                        nroadelanto = Convert.ToInt32(result.FacturaID); // Para el cobro campo adel_num
+
+                        /*Construccion del objeto RengCob porque para los anticipos no deberia venir nada en él*/
+                        item.DetaCobro = new List<DetaCobro>
+                        {
+                            new DetaCobro
                             {
-                                Factura factura = db.Factura.FirstOrDefault(f => f.FactNum == documento.NroDoc);
-                                if (factura != null)
+                                #region Campos
+		                        CobNum = numeroCobro,
+                                RengNum = 1,
+                                TpDocCob = adelanto.TipoDoc,
+                                DocNum = nroadelanto,
+                                NetoTmp = adelanto.Saldo,
+                                Dppago = 0,
+                                MontCob = adelanto.Saldo,
+                                ImpPago = 0,
+                                MontoObj = 0,
+                                Isv = 0,
+                                NroFact = string.Empty,
+                                Moneda = adelanto.Moneda,
+                                Tasa = adelanto.Tasa,
+                                FecEmis = adelanto.FecEmis,
+                                FecVenc = adelanto.FecEmis 
+	                            #endregion
+                            }
+                        };
+                    }
+                    else
+                    {
+                        foreach (var iDocUpdate in item.DetaCobro)
+                        {
+                            DocumCc documento = new DocumentosVentasRepositorio().GetDocumento(iDocUpdate.DocNum, iDocUpdate.TpDocCob, empresaDB);
+                            documento.Saldo -= iDocUpdate.Neto;
+                            documento.CoUsMo = item.CoUsIn;
+                            documento.FeUsMo = item.FeUsIn;
+                            result = new DocumentosVentasRepositorio().Update(documento, empresaDB);
+
+                            if (result.Status == "OK")
+                            {
+                                if (documento.TipoDoc == "FACT" && documento.Aut)
                                 {
-                                    factura.Saldo -= iDocUpdate.Neto;
-                                    factura.CoUsMo = item.CoUsIn;
-                                    factura.FeUsMo = item.FeUsIn;
-                                    db.Entry(factura).State = EntityState.Modified;
-                                    db.SaveChanges();
+                                    Factura factura = db.Factura.FirstOrDefault(f => f.FactNum == documento.NroDoc);
+                                    if (factura != null)
+                                    {
+                                        factura.Saldo -= iDocUpdate.Neto;
+                                        factura.CoUsMo = item.CoUsIn;
+                                        factura.FeUsMo = item.FeUsIn;
+                                        db.Entry(factura).State = EntityState.Modified;
+                                        db.SaveChanges();
+                                    }
                                 }
                             }
                         }
@@ -682,7 +754,7 @@
                         CoUsEl = item.CoUsEl,
                         FeUsEl = item.FeUsEl,
                         Recargo = item.Recargo,
-                        AdelNum = item.AdelNum,
+                        AdelNum = nroadelanto, //item.AdelNum,
                         Revisado = item.Revisado,
                         Trasnfe = item.Trasnfe,
                         CoSucu = item.CoSucu,
@@ -693,7 +765,7 @@
                         Aux01 = item.Aux01,
                         Aux02 = item.Aux02,
                         Origen = item.Origen,
-                        OrigenD = item.OrigenD
+                        OrigenD = item.OrigenD,
                         #endregion
                     };
                     db.Cobros.Add(cobro);
@@ -715,7 +787,7 @@
                             MontDoc = i.MontDoc,
                             MontTmp = i.MontDoc,
                             Moneda = i.Moneda,
-                            Banco = i.Banco,
+                            Banco = (i.Banco == "DEVO") ? string.Empty : i.Banco,
                             CodCaja = i.CodCaja,
                             DesCaja = i.DesCaja,
                             FecCheq = i.FecCheq,
@@ -798,12 +870,15 @@
                             numeroCajaBanco = utilitarios.BuscarConsecutivo("MOVB", item.CoSucu, empresaDB);
 
                             #region Guarda movimiento banco
+                            int lengthCliente = cliente.CliDes.Length;
                             int lengthDescrCaja = $"Cobro: {numeroCobro} de ".Length;
                             int lengthMaxCliente = 60 - (lengthDescrCaja - 1);
-                            var observacion = $"Cobro: {numeroCobro} de {cliente.CliDes.Substring(0, (lengthMaxCliente - lengthDescrCaja)).Trim()}";
+                            int maxHastaCliente = lengthCliente <= (lengthMaxCliente - lengthDescrCaja) ? lengthCliente : (lengthMaxCliente - lengthDescrCaja);
+                            string observacion = $"Cobro: {numeroCobro} de {cliente.CliDes.Substring(0, maxHastaCliente).Trim()}";
 
                             MovBan movBan = new MovBan
                             {
+                                #region Campos
                                 MovNum = numeroCajaBanco,
                                 Codigo = iFormaPag.CodCaja,
                                 CtaEgre = cliente.CoIngr,
@@ -826,9 +901,12 @@
                                 MontoH = iFormaPag.MontDoc,
                                 CoUsIn = item.CoUsIn,
                                 CoUsMo = string.Empty
+                                #endregion
                             };
                             db.MovBan.Add(movBan);
                             db.SaveChanges();
+                            //result = new MovimientosBancoRepositorio().Save(movBan, empresaDB);
+                            //if (result.Status == "ERROR") throw new ArgumentException(result.Message);
                             #endregion
 
                             #region Actualizar saldo en cuenta
@@ -836,6 +914,8 @@
                             cuenta.SaldoA += iFormaPag.MontDoc;
                             db.Entry(cuenta).State = EntityState.Modified;
                             db.SaveChanges();
+                            //result = new CuentasBancariasRepositorio().Update(cuenta, empresaDB);
+                            //if (result.Status == "ERROR") throw new ArgumentException(result.Message);
                             #endregion
 
                             #region Actualizar rengtip
@@ -852,70 +932,80 @@
                         }
                         else
                         {
-                            numeroCajaBanco = utilitarios.BuscarConsecutivo("MOVC", item.CoSucu, empresaDB);
-
-                            #region Guardar movimiento caja
-                            string NomTarjeta = string.Empty;
-                            if (!string.IsNullOrEmpty(iFormaPag.Banco.Trim()))
+                            if (iFormaPag.Banco.Trim() != "DEVO")
                             {
-                                NomTarjeta = db.TarjCre.FirstOrDefault(t => t.CoTar == iFormaPag.Banco.Trim()).DesTar.Trim();
+                                numeroCajaBanco = utilitarios.BuscarConsecutivo("MOVC", item.CoSucu, empresaDB);
+
+                                #region Guardar movimiento caja
+                                string NomTarjeta = string.Empty;
+                                if (!string.IsNullOrEmpty(iFormaPag.Banco.Trim()))
+                                {
+                                    NomTarjeta = db.TarjCre.FirstOrDefault(t => t.CoTar == iFormaPag.Banco.Trim()).DesTar.Trim();
+                                }
+
+                                int lengthCliente = cliente.CliDes.Length;
+                                int lengthNomTarjet = $"{NomTarjeta}".Length;
+                                int lengthDescrCaja = $"Cobro: {numeroCobro} de ".Length;
+                                int lengthMaxCliente = 60 - (lengthNomTarjet + lengthDescrCaja - 1);
+                                int maxHastaCliente = lengthCliente <= (lengthMaxCliente - lengthDescrCaja) ? lengthCliente : (lengthMaxCliente - lengthDescrCaja);
+                                string observacion = $"{(iFormaPag.TipCob == "TARJ" ? NomTarjeta : string.Empty)} Cobro: {numeroCobro} de {cliente.CliDes.Substring(0, maxHastaCliente).Trim()}";
+
+                                MovCaj movCaj = new MovCaj
+                                {
+                                    #region Campos
+                                    MovNum = numeroCajaBanco,
+                                    Codigo = iFormaPag.CodCaja,
+                                    CtaEgre = cliente.CoIngr,
+                                    Tasa = item.Tasa,
+                                    Moneda = item.Moneda,
+                                    FeUsIn = item.FeUsIn,
+                                    FeUsMo = item.FeUsMo,
+                                    FeUsEl = item.FeUsEl,
+                                    Fecha = item.FecCob,
+                                    FechaChe = iFormaPag.FecCheq,
+                                    Feccom = item.FecCob,
+                                    CoSucu = item.CoSucu,
+                                    Origen = "COB",
+                                    Descrip = observacion,
+                                    FormaPag = (iFormaPag.TipCob == "TARJ") ? "TJ" : "EF",
+                                    DocNum = iFormaPag.NumDoc.Trim(),
+                                    BancTarj = iFormaPag.Banco,
+                                    MontoH = iFormaPag.MontDoc,
+                                    TipoOp = "I",
+                                    CobPag = numeroCobro,
+                                    OriDep = true,
+                                    CoUsIn = item.CoUsIn,
+                                    CoUsMo = string.Empty,
+                                    CoUsEl = string.Empty /**/
+                                    #endregion
+                                };
+                                db.MovCaj.Add(movCaj);
+                                db.SaveChanges();
+                                //result = new MovimientosCajaRepositorio().Save(movCaj, empresaDB);
+                                //if (result.Status == "ERROR") throw new ArgumentException(result.Message);
+                                #endregion
+
+                                #region Actualizar saldo en caja
+                                Cajas caja = db.Cajas.FirstOrDefault(c => c.CodCaja == iFormaPag.CodCaja);
+                                caja.SaldoA += iFormaPag.MontDoc;
+                                caja.SaldoE += iFormaPag.TipCob == "EFEC" ? iFormaPag.MontDoc : 0;
+                                db.Entry(caja).State = EntityState.Modified;
+                                db.SaveChanges();
+                                #endregion
+
+                                #region Actualizar rengtip
+                                RengTip updateRengtip = db.RengTip.FirstOrDefault(f => f.CobNum == numeroCobro && f.RengNum == iFormaPag.RengNum);
+                                updateRengtip.Movi = numeroCajaBanco;
+                                updateRengtip.NombreBan = NomTarjeta;
+                                updateRengtip.DesCaja = caja.Descrip;
+                                db.Entry(updateRengtip).State = EntityState.Modified;
+                                db.SaveChanges();
+                                #endregion
+
+                                #region Actualizar consecutivo movcaj
+                                utilitarios.ActualizarConsecutivo(numeroCajaBanco, "MOVC", item.CoSucu, empresaDB);
+                                #endregion
                             }
-
-                            int lengthNomTarjet = $"{NomTarjeta}".Length;
-                            int lengthDescrCaja = $"Cobro: { numeroCobro} de ".Length;
-                            int lengthMaxCliente = 60 - (lengthNomTarjet + lengthDescrCaja -1);
-                            var observacion = $"{(iFormaPag.TipCob == "TARJ" ? NomTarjeta : string.Empty)} Cobro: {numeroCobro} de {cliente.CliDes.Substring(0, (lengthMaxCliente - lengthDescrCaja)).Trim()}";
-
-                            MovCaj movCaj = new MovCaj
-                            {
-                                MovNum = numeroCajaBanco,
-                                Codigo = iFormaPag.CodCaja,
-                                CtaEgre = cliente.CoIngr,
-                                Tasa = item.Tasa,
-                                Moneda = item.Moneda,
-                                FeUsIn = item.FeUsIn,
-                                FeUsMo = item.FeUsMo,
-                                FeUsEl = item.FeUsEl,
-                                Fecha = item.FecCob,
-                                FechaChe = iFormaPag.FecCheq,
-                                Feccom = item.FecCob,
-                                CoSucu = item.CoSucu,
-                                Origen = "COB",
-                                Descrip = observacion,
-                                FormaPag = (iFormaPag.TipCob == "TARJ") ? "TJ" : "EF",
-                                DocNum = iFormaPag.NumDoc.Trim(),
-                                BancTarj = iFormaPag.Banco,
-                                MontoH = iFormaPag.MontDoc,
-                                TipoOp = "I",
-                                CobPag = numeroCobro,
-                                OriDep = true,
-                                CoUsIn = item.CoUsIn,
-                                CoUsMo = string.Empty,
-                                CoUsEl = string.Empty
-                            };
-                            db.MovCaj.Add(movCaj);
-                            db.SaveChanges();
-                            #endregion
-
-                            #region Actualizar saldo en caja
-                            Cajas caja = db.Cajas.FirstOrDefault(c => c.CodCaja == iFormaPag.CodCaja);
-                            caja.SaldoA += iFormaPag.MontDoc;
-                            db.Entry(caja).State = EntityState.Modified;
-                            db.SaveChanges();
-                            #endregion
-
-                            #region Actualizar rengtip
-                            RengTip updateRengtip = db.RengTip.FirstOrDefault(f => f.CobNum == numeroCobro && f.RengNum == iFormaPag.RengNum);
-                            updateRengtip.Movi = numeroCajaBanco;
-                            updateRengtip.NombreBan = NomTarjeta;
-                            updateRengtip.DesCaja = caja.Descrip;
-                            db.Entry(updateRengtip).State = EntityState.Modified;
-                            db.SaveChanges();
-                            #endregion
-
-                            #region Actualizar consecutivo movcaj
-                            utilitarios.ActualizarConsecutivo(numeroCajaBanco, "MOVC", item.CoSucu, empresaDB);
-                            #endregion
                         }
                     }
                     #endregion
@@ -929,7 +1019,7 @@
                     throw new ArgumentException("No se encontró el correlativo configurado para 'COBRO'.");
                 }
 
-                return new Response { Status = "OK", Message = "Transacción realizada con éxito" };
+                return new Response { Status = "OK", Message = "Transacción realizada con éxito", FacturaID = numeroCobro.ToString() };
             }
             catch (Exception ex)
             {
