@@ -49,9 +49,11 @@
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
 
                 #region Validar datos cliente
-                ValidarCliente(item, empresaDB, true); 
+                ValidarCliente(item, empresaDB, true);
                 #endregion
 
+                item.FechaReg = DateTime.Now;
+                item.FecUltVe = DateTime.Now;
                 db.Entry(item).State = EntityState.Added;
                 db.SaveChanges();
                 return new Response { Status = "OK", Message = "Transacción realizada con éxito." };

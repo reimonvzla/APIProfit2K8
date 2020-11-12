@@ -45,6 +45,16 @@
         }
         #endregion
 
+        #region GetDocumentosPorCliente
+        // GET: api/<DocumentoVentaProfitController>
+        [HttpGet]
+        [Route("GetDocumentosPorCliente")]
+        public IEnumerable<DocumCc> GetDocumentosPorCliente(string TipoDocumento, string Emp,string CodCliente)
+        {
+            return metodo.GetAllTipoDocbyClient(TipoDocumento, Emp, CodCliente);
+        }
+        #endregion
+
         #region Guardar
         // POST api/<DocumentoVentaProfitController>
         [HttpPost]

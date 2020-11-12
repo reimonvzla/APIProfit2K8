@@ -11,7 +11,7 @@
     [ApiController]
     [EnableCors("AllowOrigin")]
     
-    public class AjusteEntradaSalidaProfit : ControllerBase
+    public class AjusteEntradaSalidaProfitController : ControllerBase
     {
         readonly AjustesEntradasSalidasRepositorio metodo = new AjustesEntradasSalidasRepositorio();
         Response resultado;

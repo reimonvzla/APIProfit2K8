@@ -13,6 +13,7 @@
         readonly DocumentosVentasRepositorio DocumCCRepositorio = new DocumentosVentasRepositorio();
         readonly MovimientosCajaRepositorio MovCRepositorio = new MovimientosCajaRepositorio();
         readonly MovimientosBancoRepositorio MovBRepositorio = new MovimientosBancoRepositorio();
+        readonly NotasRecepcionComprasRepositorio NotRRepositorio = new NotasRecepcionComprasRepositorio();
         int valor = 0;
 
         #region Buscar consecutivo de documento
@@ -38,7 +39,7 @@
             while (true)
             {
                 #region Busqueda movimientos en documentos
-                if (tipoDoc != "DEVO" && tipoDoc != "AJUS" && tipoDoc != "COBR" && tipoDoc != "MOVC" && tipoDoc != "MOVB")
+                if (tipoDoc != "DEVO" && tipoDoc != "AJUS" && tipoDoc != "COBR" && tipoDoc != "MOVC" && tipoDoc != "MOVB" && tipoDoc != "NREC")
                 {
                     DocumCc documcc = DocumCCRepositorio.GetDocumento(numero, tipoDoc, empresaDB);
                     if (documcc != null)
@@ -125,7 +126,22 @@
                     {
                         break;
                     }
-                } 
+                }
+                #endregion
+
+                #region Busqueda notas de recepcion
+                if (tipoDoc == "NREC")
+                {
+                    EncabNotRec notRec = NotRRepositorio.Find(numero, empresaDB);
+                    if (notRec != null)
+                    {
+                        numero++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
                 #endregion
 
             }
@@ -231,6 +247,9 @@
                     break;
                 case "MOVB":
                     valor = (int)obj.GetType().GetProperty("MovbNum").GetValue(obj, null);
+                    break;
+                case "NREC":
+                    valor = (int)obj.GetType().GetProperty("NdrNum").GetValue(obj, null);
                     break;
                 default:
                     break;
@@ -420,6 +439,9 @@
                     break;
                 case "ADEL":
                     tabla.GetType().GetProperty("PostNum").SetValue(tabla, numero);
+                    break;
+                case "NREC":
+                    tabla.GetType().GetProperty("NdrNum").SetValue(tabla, numero);
                     break;
                 default:
                     break;

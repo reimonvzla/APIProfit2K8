@@ -42,6 +42,14 @@ using Models;
         }
         #endregion
 
+        #region GetAllTipoDocbyClient
+        public IEnumerable<DocumCc> GetAllTipoDocbyClient(string TipoDoc, string empresaDB, string CodCliente)
+        {
+            IEnumerable<DocumCc> DocsClientes = GetAllbyTipoDoc(TipoDoc, empresaDB);
+            return DocsClientes.Where(c => c.CoCli.Trim() == CodCliente.Trim());
+        }
+        #endregion
+
         #region Remove
         public Response Remove(int key, string user, string empresaDB)
         {
@@ -88,7 +96,7 @@ using Models;
             }
         }
         #endregion
-
+        
         #region Update
         public Response Update(DocumCc item, string empresaDB)
         {
