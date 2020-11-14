@@ -45,7 +45,13 @@
         {
             try
             {
+                Cuentas cuenta = GetCuenta(item.CodCta, empresaDB);
+
+                if (cuenta != null) throw new ArgumentException($"La cuenta bancaria {item.CodCta.Trim()} ya existe.");
+
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+
+                item.Rowguid = Guid.NewGuid();
                 db.Entry(item).State = EntityState.Added;
                 db.SaveChanges();
                 return new Response { Status = "OK", Message = "Cuenta bancaria registrada con éxito" };
@@ -63,7 +69,13 @@
         {
             try
             {
+                Cuentas cuenta = GetCuenta(item.CodCta, empresaDB);
+                if (cuenta == null) throw new ArgumentException($"La cuenta bancaria {item.CodCta.Trim()} no existe.");
+
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+
+                item.Rowguid = cuenta.Rowguid;
+                item.RowId = cuenta.RowId;
                 db.Entry(item).State = EntityState.Modified;
                 db.SaveChanges();
                 return new Response { Status = "OK", Message = $"Cuenta bancaria {item.CodCta.Trim()} actualizada con éxito" };

@@ -106,6 +106,7 @@
 
                 LinArt linea = Find(item.CoLin, empresaDB);
                 if (linea != null) throw new ArgumentException($"La línea {item.CoLin.Trim()} ya existe.");
+                item.Rowguid = Guid.NewGuid();
 
                 db.Entry(item).State = EntityState.Added;
                 db.SaveChanges();
@@ -124,6 +125,10 @@
             try
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+                LinArt linea = Find(item.CoLin, empresaDB);
+                if (linea == null) throw new ArgumentException($"La línea {item.CoLin.Trim()} no existe.");
+                
+                item.RowId = linea.RowId;
                 db.Entry(item).State = EntityState.Modified;
                 db.SaveChanges();
                 return new Response { Status = "OK", Message = "Actualización realizada con éxito." };

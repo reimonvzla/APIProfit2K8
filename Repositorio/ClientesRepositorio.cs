@@ -52,6 +52,7 @@
                 ValidarCliente(item, empresaDB, true);
                 #endregion
 
+                item.Rowguid = Guid.NewGuid();
                 item.FechaReg = DateTime.Now;
                 item.FecUltVe = DateTime.Now;
                 db.Entry(item).State = EntityState.Added;
