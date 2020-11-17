@@ -32,7 +32,16 @@
         public SubLin GetSublinea(string CodSublinea, string Emp)
         {
             return metodo.Find(CodSublinea, Emp);
-        } 
+        }
+        #endregion
+
+        #region GetSublineaxLinea
+        // GET api/<SubLineaArticuloProfitController>/5
+        [HttpGet("GetSublineaxLinea")]
+        public SubLin GetSublineaxLinea(string CodSublinea, string CodLinea,string Emp)
+        {
+            return metodo.FindxLinea(CodSublinea, CodLinea, Emp);
+        }
         #endregion
 
         #region Guardar

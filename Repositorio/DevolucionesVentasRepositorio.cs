@@ -10,7 +10,7 @@
     public class DevolucionesVentasRepositorio : IRepositorio<EncabDevolucionVenta>
     {
         readonly ConexionAlterna conn = new ConexionAlterna();
-        readonly Utilitarios utilitarios = new Utilitarios();
+        //readonly Utilitarios utilitarios = new Utilitarios();
         Clientes cliente;
         EncabFacturaVenta factura;
         Cajas caja;
@@ -688,6 +688,7 @@
         private void ValidarDevolucion(EncabDevolucionVenta obj, string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+            Utilitarios utilitarios = new Utilitarios();
 
             #region Verificar caja ppal para el cobro
             caja = db.Cajas.FirstOrDefault(c => c.Cajapri == true);

@@ -10,20 +10,20 @@
     public class FacturasVentasRepositorio : IRepositorio<EncabFacturaVenta>
     {
         readonly ConexionAlterna conn = new ConexionAlterna();
-        readonly Utilitarios utilitarios = new Utilitarios();
+        //readonly Utilitarios utilitarios = new Utilitarios();
         Clientes cliente;
 
         #region Find
         public EncabFacturaVenta Find(int key, string empresaDB)
         {
-            /* Se puede hacer un simple join pero no en coleccion de memoria, de por si nunca los joins fueron 
-             * soportados en coleciones de memoria. Solo EF Core 1.x / 2.x 
-             * usó llamadas de evaluacion de cliente para cosas que no se podian traducir.
-             * Pero dicha evaluación implícita del cliente se eliminó en esta versión (3.1) 
-             * ahora se supone que se debe encontrar un constructor traducible o cambiar 
-             * explícitamente a la evaluación del cliente a través de LINQ. por lo que se realizó de esta forma la consulta. 
-             * generalmente esto era una sola línea...
-             */
+            ///* Se puede hacer un simple join pero no en coleccion de memoria, de por si nunca los joins fueron 
+            // * soportados en coleciones de memoria. Solo EF Core 1.x / 2.x 
+            // * usó llamadas de evaluacion de cliente para cosas que no se podian traducir.
+            // * Pero dicha evaluación implícita del cliente se eliminó en esta versión (3.1) 
+            // * ahora se supone que se debe encontrar un constructor traducible o cambiar 
+            // * explícitamente a la evaluación del cliente a través de LINQ. por lo que se realizó de esta forma la consulta. 
+            // * generalmente esto era una sola línea...
+            // */
 
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
             EncabFacturaVenta fact = db.Factura.Select(f => new EncabFacturaVenta()
@@ -461,6 +461,7 @@
             try
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+                Utilitarios utilitarios = new Utilitarios();
 
                 #region Validar factura
                 ValidarFactura(item, empresaDB); 
@@ -700,6 +701,7 @@
         private void ValidarFactura(EncabFacturaVenta obj,string empresaDB)
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+            Utilitarios utilitarios = new Utilitarios();
 
             #region Verificar cliente
             cliente = new ClientesRepositorio().GetCliente(obj.CoCli, empresaDB);

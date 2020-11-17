@@ -10,7 +10,7 @@
     public class NotasRecepcionComprasRepositorio : IRepositorio<EncabNotRec>
     {
         readonly ConexionAlterna conn = new ConexionAlterna();
-        readonly Utilitarios utilitarios = new Utilitarios();
+        //readonly Utilitarios utilitarios = new Utilitarios();
 
         #region Find
         public EncabNotRec Find(int key, string empresaDB)
@@ -323,6 +323,7 @@
             try
             {
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+                Utilitarios utilitarios = new Utilitarios();
 
                 #region Buscar consecutivo
                 var numeroNRecepcion = utilitarios.BuscarConsecutivo("NREC", item.CoSucu, empresaDB);

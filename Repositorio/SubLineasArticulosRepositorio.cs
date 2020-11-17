@@ -17,7 +17,15 @@
         {
             using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
             return db.SubLin.FirstOrDefault(sl => sl.CoSubl.Trim() == key.Trim());
-        } 
+        }
+        #endregion
+
+        #region FindxLinea
+        public SubLin FindxLinea(string key, string CoLin, string empresaDB)
+        {
+            using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
+            return db.SubLin.FirstOrDefault(sl => sl.CoSubl.Trim() == key.Trim() && sl.CoLin.Trim() == CoLin.Trim());
+        }
         #endregion
 
         #region GetAll
@@ -59,22 +67,22 @@
         {
             try
             {
-                SubLin sublinea = Find(item.CoSubl, empresaDB);
-                if (sublinea == null) throw new ArgumentException($"La Sublinea {item.CoSubl.Trim()} no existe.");
-
                 LinArt linea = new LineasArticulosRepositorio().Find(item.CoLin, empresaDB);
                 if (linea == null) throw new ArgumentException($"La Linea {item.CoLin.Trim()} suministrada no existe.");
 
+                SubLin sublinea = FindxLinea(item.CoSubl, item.CoLin, empresaDB);
+                if (sublinea == null) throw new ArgumentException($"La Sublinea {item.CoSubl.Trim()} asociada a una Línea {item.CoLin.Trim()} no existe.");
+
                 using var db = new ProfitAdmin2K8(conn.GetDbContextOptions(empresaDB));
 
-                FormattableString subLinea = $@"UPDATE [sub_lin] SET 
+                FormattableString UpdateSubLinea = $@"UPDATE [sub_lin] SET 
                            [subl_des] = {item.SublDes} ,[co_lin] = {item.CoLin},[campo1] = {item.Campo1},[campo2] = {item.Campo2}
                           ,[campo3] = {item.Campo3},[campo4] = {item.Campo4},[co_us_in] = {item.CoUsIn},[fe_us_in] = {item.FeUsIn}
                           ,[co_us_mo] = {item.CoUsMo},[fe_us_mo] = {item.FeUsMo},[co_us_el] = {item.CoUsEl},[fe_us_el] = {item.FeUsEl}
                           ,[revisado] = {item.Revisado},[trasnfe] = {item.Trasnfe},[co_sucu] = {item.CoSucu},[co_imun] = {item.CoImun}
                           ,[co_reten] = {item.CoReten},[i_subl_des] = {item.ISublDes},[movil] = {item.Movil} 
-                          WHERE rowguid = {item.Rowguid}";
-                int result = db.Database.ExecuteSqlInterpolated(subLinea);
+                          WHERE rowguid = {sublinea.Rowguid}";
+                int result = db.Database.ExecuteSqlInterpolated(UpdateSubLinea);
 
                 if (result == 1)
                 {
